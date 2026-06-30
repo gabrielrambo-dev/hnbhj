@@ -1,0 +1,44 @@
+name: Gerar EXE Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Limpar cache npm
+        run: npm cache clean --force
+
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+
+      - name: Build do app
+        run: npm run build
+
+      - name: Gerar instalador EXE
+        run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enviar EXE como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nemotron-Windows-EXE
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
